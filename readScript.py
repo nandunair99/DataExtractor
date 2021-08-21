@@ -1,6 +1,6 @@
+import mysql.connector
 import mysql.connector as msc
 import pandas as pd
-import sqlalchemy
 
 def fetch_data():
     df = pd.read_csv("sample.txt", skiprows=1, delimiter="|",
@@ -59,12 +59,17 @@ def insert_data(df):
             InsertQuery = """INSERT INTO """+df.iloc[i, 8]+""" (CustomerName, CustomerID, CustomerOpenDate,LastConsultedDate, VaccinationType, DoctorConsulted,State, Country, PostCode,DateofBirth, ActiveCustomer) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
             print(df)
 
+            try:
+                mycursor.execute(InsertQuery, (
+                df.iloc[i, 1], int(df.iloc[i, 2]), int(df.iloc[i, 3]), int(df.iloc[i, 4]), df.iloc[i, 5],
+                df.iloc[i, 6],
+                df.iloc[i, 7], df.iloc[i, 8], int(df.iloc[i, 9]), int(format_date(i, df)), df.iloc[i, 11]))
 
-            mycursor.execute(InsertQuery, (
-            df.iloc[i, 1], int(df.iloc[i, 2]), int(df.iloc[i, 3]), int(df.iloc[i, 4]), df.iloc[i, 5], df.iloc[i, 6],
-            df.iloc[i, 7], df.iloc[i, 8], int(df.iloc[i, 9]), int(format_date(i,df)), df.iloc[i, 11]))
+                print("Customer Inserted successfully ")
+            except mysql.connector.IntegrityError as exc:
+                print("Record already exists...")
 
-            print("Customer Inserted successfully ")
+
 
     except msc.Error as error:
             print("Failed to create table in MySQL: {}".format(error))
