@@ -9,14 +9,15 @@ def fetch_data():
                             "ActiveCustomer"])
 
     df=df.loc[df['DataType'] == 'D']
+    df=df.drop(['Spacing'], axis=1)
     df[["LastConsultedDate","PostCode","DateofBirth"]]=df[["LastConsultedDate","PostCode","DateofBirth"]].astype(int)
     print(df.dtypes)
-    
+
 
     return df
 
 def format_date(i,df):
-    x = df.iloc[i, 11]
+    x = df.iloc[i, 10]
     x=str(x)
     l=len(x)
     if(l==7):
@@ -41,7 +42,7 @@ def insert_data(df):
     try:
         for i in range(len(df)):
 
-            CreateQuery = """CREATE TABLE IF NOT EXISTS """+df.iloc[i, 9]+"""(
+            CreateQuery = """CREATE TABLE IF NOT EXISTS """+df.iloc[i, 8]+"""(
                                      CustomerName VARCHAR(255) NOT NULL primary key,
                                      CustomerID VARCHAR(18) NOT NULL,
                                      CustomerOpenDate DATE NOT NULL,
@@ -57,13 +58,13 @@ def insert_data(df):
 
             mycursor.execute(CreateQuery)
             print("Table created successfully ")
-            InsertQuery = """INSERT INTO """+df.iloc[i, 9]+""" (CustomerName, CustomerID, CustomerOpenDate,LastConsultedDate, VaccinationType, DoctorConsulted,State, Country, PostCode,DateofBirth, ActiveCustomer) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
+            InsertQuery = """INSERT INTO """+df.iloc[i, 8]+""" (CustomerName, CustomerID, CustomerOpenDate,LastConsultedDate, VaccinationType, DoctorConsulted,State, Country, PostCode,DateofBirth, ActiveCustomer) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
             print(df)
 
             try:
                 mycursor.execute(InsertQuery, (
-                df.iloc[i, 2], int(df.iloc[i, 3]), int(df.iloc[i, 4]), int(df.iloc[i, 5]), df.iloc[i, 6],
-                df.iloc[i, 7],df.iloc[i, 8], df.iloc[i, 9], int(df.iloc[i, 10]), int(format_date(i, df)), df.iloc[i, 12]))
+                df.iloc[i, 1], int(df.iloc[i, 2]), int(df.iloc[i, 3]), int(df.iloc[i, 4]), df.iloc[i, 5],
+                df.iloc[i, 6],df.iloc[i, 7], df.iloc[i, 8], int(df.iloc[i, 9]), int(format_date(i, df)), df.iloc[i, 11]))
 
                 print("Customer Inserted successfully ")
             except mysql.connector.IntegrityError as exc:
