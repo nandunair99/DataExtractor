@@ -2,6 +2,7 @@ import mysql.connector
 import mysql.connector as msc
 import pandas as pd
 
+#Extracting data from txt file and fetching required information
 def fetch_data():
     df = pd.read_csv("sample.txt", delimiter="|",
                      names=["Spacing","DataType", "CustomerName", "CustomerID", "CustomerOpenDate", "LastConsultedDate",
@@ -10,12 +11,15 @@ def fetch_data():
 
     df=df.loc[df['DataType'] == 'D']
     df=df.drop(['Spacing'], axis=1)
+
+    #typecasting for compatibility with mysql
     df[["LastConsultedDate","PostCode","DateofBirth"]]=df[["LastConsultedDate","PostCode","DateofBirth"]].astype(int)
     print(df.dtypes)
 
 
     return df
 
+#formating date of birth column values from dd/mm/yyyy to yyyy/mm/dd format
 def format_date(i,df):
     x = df.iloc[i, 10]
     x=str(x)
@@ -35,13 +39,17 @@ def format_date(i,df):
     date=year+month+date
     return date
 
+
+
+#Inserting data to mysql database tables
 def insert_data(df):
+    #Connection string
     mydb = msc.connect(host="localhost", user="root", password="1970", database="incubyte")
     mycursor = mydb.cursor()
 
     try:
         for i in range(len(df)):
-
+            #Creating table if does not exist with table name as country
             CreateQuery = """CREATE TABLE IF NOT EXISTS """+df.iloc[i, 8]+"""(
                                      CustomerName VARCHAR(255) NOT NULL primary key,
                                      CustomerID VARCHAR(18) NOT NULL,
@@ -58,9 +66,11 @@ def insert_data(df):
 
             mycursor.execute(CreateQuery)
             print("Table created successfully ")
+
+            #inserting into database tables
             InsertQuery = """INSERT INTO """+df.iloc[i, 8]+""" (CustomerName, CustomerID, CustomerOpenDate,LastConsultedDate, VaccinationType, DoctorConsulted,State, Country, PostCode,DateofBirth, ActiveCustomer) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
             print(df)
-
+#handling Integrity constraints
             try:
                 mycursor.execute(InsertQuery, (
                 df.iloc[i, 1], int(df.iloc[i, 2]), int(df.iloc[i, 3]), int(df.iloc[i, 4]), df.iloc[i, 5],
